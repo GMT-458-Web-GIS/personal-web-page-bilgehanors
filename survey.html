@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survey Bet</title>
+    <link rel="stylesheet" href="survey.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+    <div class="head">
+        <h1>SurveyBet</h1>
+    </div>
+    <div id="map"></div>
+    <div class="container">
+        <div id="locations"></div>
+        <div id="playersContainer">
+            <div class="player" id="player1">
+                <label>Player 1 Guess (km):</label>
+                <input type="number" class="playerGuess" data-player="1">
+            </div>
+            <div class="player" id="player2">
+                <label>Player 2 Guess (km):</label>
+                <input type="number" class="playerGuess" data-player="2">
+            </div>
+        </div>
+        <button onclick="addPlayer()">Add Player</button>
+        <button onclick="drawLine()">Random Points</button>
+        <button onclick="submitGuesses()">Show Results</button>
+        <div id="result"></div>
+    </div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="survey.js"></script>
+</body>
+</html>

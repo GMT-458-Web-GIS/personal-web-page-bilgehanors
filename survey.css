@@ -1,0 +1,118 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+h1 {
+    background-color: #1d3557;
+    color: #ffffff;
+    padding: 10px;
+    text-align: center;
+    margin: 0;
+    height: 50px;
+    padding-top: 20px;
+}
+
+#map {
+    height: 800px; 
+    width: 100%; 
+}
+
+.container {
+    position: absolute;
+    top: 80px;
+    z-index: 1000;
+    left: 10px;
+    width: 30%;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Ensure container is responsive */
+@media (max-width: 768px) {
+    .container {
+        width: 90%;
+        left: 5%;
+    }
+}
+
+.player {
+    margin-bottom: 10px;
+}
+
+.player input {
+    margin-left: 10px;
+    padding: 5px;
+    width: 100%;
+}
+
+button {
+    background-color: #1d3557;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 16px;
+    margin-top: 10px;
+    width: 100%; /* Full width for buttons on mobile */
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+#result {
+    font-size: 18px;
+    margin-top: 20px;
+}
+
+/* Responsive result styling */
+@media (max-width: 768px) {
+    #result {
+        font-size: 16px;
+    }
+}
+
+.winner {
+    font-weight: bold;
+    color: green;
+}
+
+.loser {
+    font-weight: normal;
+    color: red;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 480px) {
+    h1 {
+        font-size: 18px;
+        padding-top: 15px;
+    }
+
+    #map {
+        height: 800px;
+    }
+
+    .container {
+        width: 30%;
+        left: 2.5%;
+        top: 100px;
+    }
+
+    .player input {
+        width: 80%;
+    }
+
+    button {
+        padding: 10px;
+        font-size: 14px;
+    }
+}
