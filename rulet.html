@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Rus Ruleti</title>
+  <link rel="stylesheet" href="rulet.css">
+</head>
+<body>
+  <h1>Rus Ruleti</h1>
+  <div class="revolver" id="revolver">
+    <!-- 6 adet hücre -->
+    <div class="chamber" data-id="0"></div>
+    <div class="chamber" data-id="1"></div>
+    <div class="chamber" data-id="2"></div>
+    <div class="chamber" data-id="3"></div>
+    <div class="chamber" data-id="4"></div>
+    <div class="chamber" data-id="5"></div>
+  </div>
+
+  <div class="buttons">
+    <button onclick="spinChamber()">🔄 Tamburu Çevir</button>
+    <button onclick="fire()">🔥 Sık</button>
+  </div>
+
+  <div id="result"></div>
+
+  <script src="rulet.js"></script>
+</body>
+</html>
+

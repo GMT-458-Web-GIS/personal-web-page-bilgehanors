@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOLGIS</title>
+    <link rel="shortcut icon" href="./SOLGIS.jpeg">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw"></script>
+    <script src="https://unpkg.com/leaflet-editable"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder"></script>
+    
+    <link rel="stylesheet" href="./solgis.css">
+</head>
+
+<body>
+    
+    <div class="headerout">
+        <div class="header">
+            <div><form action="./index.html">
+                <input class="btn" type="submit" value="Home" />
+            </form></div>
+            <div><form action="./Dice Game.html">
+                <input class="btn" type="submit" value="Games" />
+            </form></div>
+            <div><form action="./Example.html">
+                <input class="btn" type="submit" value="Example Site" />
+            </form></div>
+            <div class="dropdown">
+                <button class="btn">Projects</button>
+                <div class="dropdown-content">
+                    <a href="./downloader.html">Youtube Video Downloader</a>
+                    <a href="./solgis.html">SOLGIS</a>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+    <h1> Solar Panel Efficency Calculator</h1>
+
+    <div class="coordinates">
+        Latitude: <input type="text" id="latitude">
+        Longitude: <input type="text" id="longitude">
+        <button onclick="moveToCoordinates()">Go to Coordinates</button>
+    </div>
+    <div id="calculation-results"></div>
+    <div id="search-bar"></div>
+
+    <div id="map">
+       
+    </div>
+
+    <div id="area-display">Area: <span id="area-value">0</span> square meters
+        <button class="calcu" onclick="calculatePanels()">Calculate</button>
+    </div>
+    
+    
+    <script src="./solgis.js"></script>
+
+</body>
+
+</html>
