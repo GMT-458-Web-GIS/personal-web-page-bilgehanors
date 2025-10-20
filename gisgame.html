@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Türkiye Şehir Bağlama Oyunu</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg-color: #2e2e2e;
+    --container-bg: #3a3a3a;
+    --text-color: #e8e8e8;
+    --border-color: #4a4a4a;
+    --input-bg: #2e2e2e;
+    --primary-color: #007bff;
+    --primary-text: #fff;
+    --province-fill: #4f4f4f;
+    --province-stroke: #2e2e2e;
+    --start-city-fill: #ffdd57;   /* Sarı */
+    --end-city-fill: #ff3860;     /* Pembe/Kırmızı */
+    --connected-fill: #48c774;   /* Yeşil */
+    --guessed-fill: #ff9f43;     /* Turuncu */
+    --hover-color: #444;
+  }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  .game-container {
+    width: 100%;
+    max-width: 800px;
+    background: var(--container-bg);
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border: 1px solid var(--border-color);
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 1.6em;
+    font-weight: 500;
+    margin: 0 0 10px 0;
+  }
+  h1 span {
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 8px;
+    color: #111;
+  }
+  #start-city-span { background-color: var(--start-city-fill); }
+  #end-city-span { background-color: var(--end-city-fill); color: white; }
+
+  #map-wrap {
+    flex: 1;
+    position: relative;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    min-height: 450px;
+  }
+
+  #map { width: 100%; height: 500px; }
+  svg { display: block; background: var(--input-bg); }
+
+  .province {
+    fill: var(--province-fill);
+    stroke: var(--province-stroke);
+    stroke-width: 0.8;
+    cursor: pointer;
+    transition: fill .2s ease;
+  }
+
+  .map-controls {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .map-controls button {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--container-bg);
+    color: var(--text-color);
+    cursor: pointer;
+  }
+  .map-controls button:hover { background: var(--hover-color); }
+
+  .controls-section { display: flex; flex-direction: column; gap: 15px; }
+
+  .guess-controls { display: flex; gap: 10px; }
+  .guess-controls input {
+    flex-grow: 1;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    font-size: 16px;
+  }
+  .guess-controls button {
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 0;
+    background: var(--primary-color);
+    color: var(--primary-text);
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  
+  #autocomplete-container {
+    position: relative;
+    flex-grow: 1;
+  }
+  #autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--container-bg);
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    z-index: 1000;
+    max-height: 150px;
+    overflow-y: auto;
+  }
+  .autocomplete-item {
+    padding: 10px 16px;
+    cursor: pointer;
+  }
+  .autocomplete-item:hover {
+    background-color: var(--hover-color);
+  }
+
+  details { border: 1px solid var(--border-color); border-radius: 8px; }
+  summary { cursor: pointer; font-weight: 500; padding: 10px 14px; }
+  #guessList {
+    list-style: none;
+    padding: 0 14px 10px 14px;
+    margin: 10px 0 0 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .guess-item { display: flex; align-items: center; }
+  .guess-color-box {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    margin-right: 8px;
+    display: inline-block;
+  }
+  
+  .hint-controls { border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 5px; }
+  .hint-controls p { margin: 0 0 10px 0; font-weight: 500; }
+  .hint-controls .buttons { display: flex; gap: 10px; }
+  .hint-controls button {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .tooltip {
+    position:absolute; pointer-events:none; background:rgba(0,0,0,0.85);
+    color:white; padding:6px 10px; border-radius:6px; font-size:14px;
+    transform:translate(-50%, -130%); white-space:nowrap; display:none; z-index: 10;
+  }
+  
+  #winMessage {
+    position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:var(--container-bg); color: var(--text-color);
+    padding: 25px 45px; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.2);
+    text-align:center; display:none; z-index:2000; flex-direction: column;
+    border: 1px solid var(--border-color);
+  }
+  #winMessage button { margin-top:15px; padding: 10px 20px; font-size: 16px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer;}
+</style>
+</head>
+<body>
+
+<div class="game-container">
+  <h1>Bugün, <span id="start-city-span">...</span>'dan <span id="end-city-span">...</span>'a gitmek istiyorum</h1>
+
+  <div id="map-wrap">
+    <div id="map"></div>
+    <div id="tooltip" class="tooltip"></div>
+    <div class="map-controls">
+      <button id="zoom-in">+</button>
+      <button id="zoom-out">-</button>
+      <button id="zoom-reset">⟳</button>
+    </div>
+  </div>
+
+  <div class="controls-section">
+    <div class="guess-controls">
+      <div id="autocomplete-container">
+        <input id="search" type="text" placeholder="Bir il girin..." autocomplete="off">
+        <div id="autocomplete-list"></div>
+      </div>
+      <button id="guessBtn">Tahmin Et</button>
+    </div>
+
+    <details open>
+      <summary>Geçmiş tahminler (göstermek/gizlemek için tıklayın):</summary>
+      <ol id="guessList"></ol>
+    </details>
+    
+    <div class="hint-controls">
+      <p>Bir ipucu al (0/3):</p>
+      <div class="buttons">
+        <button class="hint-btn">Sonraki il sınırlarını göster</button>
+        <button class="hint-btn">Tüm il sınırlarını göster</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="winMessage">
+  <h2>🎉 Kazandınız! 🎉</h2>
+  <p>İki şehri birbirine bağladınız.</p>
+  <button id="playAgain">Tekrar Oyna</button>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    let geojson, provinces, startCity, destinationCity;
+    let guesses = [];
+    let cityStatus = {}; 
+
+    const mapEl = document.getElementById("map");
+    const svg = d3.select("#map").append("svg");
+    const g = svg.append("g");
+    const tooltip = d3.select("#tooltip");
+
+    const projection = d3.geoMercator();
+    const path = d3.geoPath().projection(projection);
+
+    const zoom = d3.zoom().scaleExtent([0.8, 8]).on("zoom", e => g.attr("transform", e.transform));
+    svg.call(zoom);
+
+    const neighbors = { "Adana": ["Osmaniye", "Hatay", "Kahramanmaraş", "Kayseri", "Niğde", "Mersin"], "Adıyaman": ["Şanlıurfa", "Diyarbakır", "Malatya", "Kahramanmaraş", "Gaziantep"], "Afyonkarahisar": ["Uşak", "Denizli", "Burdur", "Isparta", "Konya", "Eskişehir", "Kütahya"], "Ağrı": ["Iğdır", "Kars", "Erzurum", "Muş", "Van"], "Aksaray": ["Ankara", "Kırşehir", "Nevşehir", "Niğde", "Konya"], "Amasya": ["Tokat", "Çorum", "Samsun", "Yozgat"], "Ankara": ["Eskişehir", "Bolu", "Çankırı", "Kırıkkale", "Kırşehir", "Aksaray", "Konya"], "Antalya": ["Muğla", "Burdur", "Isparta", "Konya", "Karaman", "Mersin"], "Ardahan": ["Artvin", "Erzurum", "Kars"], "Artvin": ["Rize", "Erzurum", "Ardahan"], "Aydın": ["İzmir", "Manisa", "Denizli", "Muğla"], "Balıkesir": ["Çanakkale", "İzmir", "Manisa", "Kütahya", "Bursa"], "Bartın": ["Zonguldak", "Karabük", "Kastamonu"], "Batman": ["Diyarbakır", "Mardin", "Siirt", "Bitlis", "Muş"], "Bayburt": ["Trabzon", "Rize", "Erzurum", "Gümüşhane", "Erzincan"], "Bilecik": ["Bursa", "Kütahya", "Eskişehir", "Bolu", "Sakarya"], "Bingöl": ["Muş", "Diyarbakır", "Elazığ", "Tunceli", "Erzincan", "Erzurum"], "Bitlis": ["Muş", "Van", "Siirt", "Batman"], "Bolu": ["Zonguldak", "Düzce", "Sakarya", "Bilecik", "Eskişehir", "Ankara", "Çankırı", "Karabük"], "Burdur": ["Muğla", "Antalya", "Isparta", "Afyonkarahisar", "Denizli"], "Bursa": ["Balıkesir", "Kütahya", "Bilecik", "Sakarya", "Yalova"], "Çanakkale": ["Balıkesir", "Tekirdağ", "Edirne"], "Çankırı": ["Ankara", "Kırıkkale", "Kastamonu", "Karabük", "Bolu"], "Çorum": ["Kastamonu", "Çankırı", "Kırıkkale", "Yozgat", "Tokat", "Amasya", "Samsun"], "Denizli": ["Aydın", "Muğla", "Burdur", "Afyonkarahisar", "Uşak", "Manisa"], "Diyarbakır": ["Mardin", "Şanlıurfa", "Adıyaman", "Malatya", "Elazığ", "Bingöl", "Muş", "Batman"], "Düzce": ["Zonguldak", "Bolu", "Sakarya"], "Edirne": ["Kırklareli", "Tekirdağ", "Çanakkale"], "Elazığ": ["Malatya", "Diyarbakır", "Bingöl", "Tunceli"], "Erzincan": ["Sivas", "Giresun", "Gümüşhane", "Bayburt", "Erzurum", "Bingöl", "Tunceli"], "Erzurum": ["Artvin", "Rize", "Bayburt", "Erzincan", "Bingöl", "Muş", "Ağrı", "Kars", "Ardahan"], "Eskişehir": ["Kütahya", "Afyonkarahisar", "Konya", "Ankara", "Bolu", "Bilecik"], "Gaziantep": ["Kilis", "Şanlıurfa", "Adıyaman", "Kahramanmaraş", "Osmaniye"], "Giresun": ["Ordu", "Sivas", "Erzincan", "Gümüşhane", "Trabzon"], "Gümüşhane": ["Trabzon", "Rize", "Bayburt", "Erzincan", "Giresun"], "Hakkari": ["Van", "Şırnak"], "Hatay": ["Adana", "Osmaniye", "Kilis"], "Iğdır": ["Kars", "Ağrı"], "Isparta": ["Antalya", "Burdur", "Afyonkarahisar", "Konya"], "İstanbul": ["Kocaeli", "Tekirdağ", "Yalova"], "İzmir": ["Manisa", "Aydın", "Balıkesir"], "Kahramanmaraş": ["Gaziantep", "Osmaniye", "Adana", "Kayseri", "Sivas", "Malatya", "Adıyaman"], "Karabük": ["Bartın", "Zonguldak", "Bolu", "Çankırı", "Kastamonu"], "Karaman": ["Konya", "Mersin", "Antalya"], "Kars": ["Erzurum", "Ardahan", "Iğdır", "Ağrı"], "Kastamonu": ["Sinop", "Çorum", "Çankırı", "Karabük", "Bartın"], "Kayseri": ["Nevşehir", "Niğde", "Adana", "Kahramanmaraş", "Sivas", "Yozgat", "Kırşehir"], "Kilis": ["Gaziantep", "Hatay", "Osmaniye"], "Kırıkkale": ["Ankara", "Çankırı", "Çorum", "Yozgat", "Kırşehir", "Aksaray"], "Kırklareli": ["Edirne", "Tekirdağ"], "Kırşehir": ["Kırıkkale", "Yozgat", "Nevşehir", "Aksaray", "Ankara", "Kayseri"], "Kocaeli": ["İstanbul", "Yalova", "Bursa", "Sakarya"], "Konya": ["Ankara", "Aksaray", "Niğde", "Karaman", "Antalya", "Isparta", "Afyonkarahisar", "Eskişehir"], "Kütahya": ["Manisa", "Uşak", "Afyonkarahisar", "Eskişehir", "Bilecik", "Bursa", "Balıkesir"], "Malatya": ["Elazığ", "Diyarbakır", "Adıyaman", "Kahramanmaraş", "Sivas"], "Manisa": ["İzmir", "Aydın", "Denizli", "Uşak", "Kütahya", "Balıkesir"], "Mardin": ["Şanlıurfa", "Diyarbakır", "Batman", "Siirt", "Şırnak"], "Mersin": ["Adana", "Niğde", "Karaman", "Antalya"], "Muğla": ["Aydın", "Denizli", "Burdur", "Antalya"], "Muş": ["Bingöl", "Bitlis", "Van", "Ağrı", "Erzurum", "Diyarbakır"], "Nevşehir": ["Kırşehir", "Kırıkkale", "Aksaray", "Niğde", "Kayseri", "Yozgat"], "Niğde": ["Aksaray", "Nevşehir", "Kayseri", "Adana", "Mersin", "Konya"], "Ordu": ["Samsun", "Tokat", "Sivas", "Giresun"], "Osmaniye": ["Hatay", "Adana", "Kahramanmaraş", "Gaziantep", "Kilis"], "Rize": ["Trabzon", "Gümüşhane", "Bayburt", "Erzurum", "Artvin"], "Sakarya": ["Kocaeli", "Bilecik", "Bolu", "Düzce", "Bursa"], "Samsun": ["Sinop", "Çorum", "Amasya", "Tokat", "Ordu"], "Siirt": ["Mardin", "Batman", "Bitlis", "Van", "Şırnak"], "Sinop": ["Kastamonu", "Çorum", "Samsun"], "Sivas": ["Ordu", "Tokat", "Amasya", "Yozgat", "Kayseri", "Kahramanmaraş", "Malatya", "Erzincan", "Giresun", "Tunceli"], "Şanlıurfa": ["Mardin", "Diyarbakır", "Adıyaman", "Gaziantep"], "Şırnak": ["Mardin", "Siirt", "Hakkari"], "Tekirdağ": ["Kırklareli", "Edirne", "Çanakkale", "İstanbul"], "Tokat": ["Amasya", "Samsun", "Ordu", "Sivas", "Yozgat", "Çorum"], "Trabzon": ["Rize", "Bayburt", "Gümüşhane", "Giresun"], "Tunceli": ["Elazığ", "Bingöl", "Erzincan", "Sivas"], "Uşak": ["Manisa", "Denizli", "Afyonkarahisar", "Kütahya"], "Van": ["Bitlis", "Muş", "Ağrı", "Hakkari", "Siirt"], "Yalova": ["Bursa", "İstanbul", "Kocaeli"], "Yozgat": ["Sivas", "Kayseri", "Nevşehir", "Kırşehir", "Kırıkkale", "Çorum", "Tokat"], "Zonguldak": ["Bartın", "Karabük", "Bolu", "Düzce"] };
+
+    const pickTwoRandom = (arr) => [...arr].sort(() => 0.5 - Math.random()).slice(0, 2);
+    const normalizeString = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+    const updateSidebar = () => {
+        const list = document.getElementById("guessList");
+        list.innerHTML = "";
+        guesses.forEach((guess, index) => {
+            const status = cityStatus[guess.city];
+            const colorVar = status === 'connected' ? '--connected-fill' : '--guessed-fill';
+            const li = document.createElement("li");
+            li.className = "guess-item";
+            li.innerHTML = `<span class="guess-color-box" style="background-color: var(${colorVar})"></span>${index + 1}. ${guess.city}`;
+            list.appendChild(li);
+        });
+    };
+
+    const startRound = () => {
+        [startCity, destinationCity] = pickTwoRandom(geojson.features.map(f => f.properties.name));
+        document.getElementById('start-city-span').textContent = startCity;
+        document.getElementById('end-city-span').textContent = destinationCity;
+        guesses = [];
+        cityStatus = { [startCity]: 'start', [destinationCity]: 'end' };
+        provinces.style("display", "none");
+        provinces.filter(d => cityStatus[d.properties.name]).style("display", "block");
+        provinces.filter(d => d.properties.name === startCity).style("fill", "var(--start-city-fill)");
+        provinces.filter(d => d.properties.name === destinationCity).style("fill", "var(--end-city-fill)");
+        document.getElementById("winMessage").style.display = "none";
+        updateSidebar();
+    };
+
+    // --- YENİDEN YAZILMIŞ, DAHA GÜVENİLİR BAĞLANTI FONKSİYONU ---
+    const updateConnections = () => {
+        const connectedSet = new Set([startCity]);
+        const queue = [startCity];
+
+        while (queue.length > 0) {
+            const currentCity = queue.shift();
+            (neighbors[currentCity] || []).forEach(neighbor => {
+                // Eğer komşu daha önce bulunmadıysa VE haritada görünür bir şehir ise (tahmin, hedef vs.)
+                if (!connectedSet.has(neighbor) && cityStatus[neighbor]) {
+                    connectedSet.add(neighbor);
+                    queue.push(neighbor);
+                }
+            });
+        }
+        
+        guesses.forEach(g => cityStatus[g.city] = connectedSet.has(g.city) ? 'connected' : 'guessed');
+        
+        Object.keys(cityStatus).forEach(city => {
+            let colorVar;
+            switch(cityStatus[city]) {
+                case 'start': colorVar = '--start-city-fill'; break;
+                // Hedef şehir bağlıysa yeşil, değilse pembe kalır
+                case 'end': colorVar = connectedSet.has(city) ? '--connected-fill' : '--end-city-fill'; break;
+                case 'connected': colorVar = '--connected-fill'; break;
+                case 'guessed': colorVar = '--guessed-fill'; break;
+            }
+            if (colorVar) provinces.filter(d => d.properties.name === city).style("fill", `var(${colorVar})`);
+        });
+
+        // Kazanma kontrolü: connectedSet hedef şehri içeriyorsa kazan
+        if (connectedSet.has(destinationCity)) {
+            document.getElementById("winMessage").style.display = "flex";
+        }
+        
+        updateSidebar();
+    };
+
+    const handleGuess = (cityName) => {
+        const normalizedInput = normalizeString(cityName);
+        const feature = geojson.features.find(f => normalizeString(f.properties.name) === normalizedInput);
+        
+        if (!feature) { alert("Şehir bulunamadı: " + cityName); return; }
+        const properCityName = feature.properties.name;
+        if (cityStatus[properCityName]) return; 
+
+        provinces.filter(d => d.properties.name === properCityName).style("display", "block");
+        cityStatus[properCityName] = "guessed";
+        guesses.push({ city: properCityName });
+        updateConnections();
+    };
+
+    const resizeMap = () => {
+        if (!geojson) return;
+        const { clientWidth: width, clientHeight: height } = mapEl;
+        svg.attr("width", width).attr("height", height);
+        projection.fitSize([width, height], geojson);
+        provinces.attr("d", path);
+    };
+
+    const setupAutocomplete = (cityNames) => {
+        const searchInput = document.getElementById('search');
+        const autocompleteList = document.getElementById('autocomplete-list');
+        searchInput.addEventListener('input', () => {
+            const value = searchInput.value;
+            autocompleteList.innerHTML = '';
+            if (!value) return;
+            const normalizedValue = normalizeString(value);
+            const suggestions = cityNames.filter(city => normalizeString(city).startsWith(normalizedValue));
+            suggestions.forEach(city => {
+                const item = document.createElement('div');
+                item.className = 'autocomplete-item';
+                item.textContent = city;
+                item.addEventListener('click', () => {
+                    searchInput.value = city;
+                    autocompleteList.innerHTML = '';
+                });
+                autocompleteList.appendChild(item);
+            });
+        });
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#autocomplete-container')) autocompleteList.innerHTML = '';
+        });
+    };
+
+    d3.json("turkey-provinces.geojson").then(data => {
+        geojson = data;
+        const cityNames = geojson.features.map(f => f.properties.name);
+        provinces = g.selectAll("path").data(geojson.features).join("path")
+            .attr("class", "province").style("display", "none")
+            .on("mouseenter", (e, d) => tooltip.style("display", "block").text(d.properties.name))
+            .on("mousemove", (e) => {
+                const [x, y] = d3.pointer(e, mapEl);
+                tooltip.style("left", `${x}px`).style("top", `${y}px`);
+            })
+            .on("mouseleave", () => tooltip.style("display", "none"));
+        setupAutocomplete(cityNames);
+        resizeMap();
+        startRound();
+    }).catch(err => {
+        console.error("GeoJSON Error:", err);
+        alert("Harita dosyası 'turkey-provinces.geojson' yüklenemedi. Lütfen Live Server ile çalıştırdığınızdan emin olun.");
+    });
+    
+    const searchInput = document.getElementById("search");
+    document.getElementById("guessBtn").addEventListener("click", () => {
+        if (searchInput.value.trim()) handleGuess(searchInput.value.trim());
+        searchInput.value = "";
+        document.getElementById('autocomplete-list').innerHTML = '';
+    });
+    searchInput.addEventListener("keypress", (e) => { if (e.key === 'Enter') document.getElementById("guessBtn").click(); });
+    document.getElementById("playAgain").addEventListener("click", startRound);
+    document.getElementById('zoom-in').addEventListener('click', () => svg.transition().duration(250).call(zoom.scaleBy, 1.3));
+    document.getElementById('zoom-out').addEventListener('click', () => svg.transition().duration(250).call(zoom.scaleBy, 1 / 1.3));
+    document.getElementById('zoom-reset').addEventListener('click', () => svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity));
+    window.addEventListener("resize", resizeMap);
+});
+</script>
+</body>
+</html>
