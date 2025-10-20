@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
             coords: [52.16, 20.96],
             thumb_photo: 'images/thumbs/warsaw_thumb.jpeg',
             gallery: [
-                { 'href': 'images/fulls/warsaw_full1.jpeg' },
+                { 'href': 'images/fulls/warsaw_full2.jpeg' },
             ]
         },
         {
